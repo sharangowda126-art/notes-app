@@ -1,33 +1,41 @@
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
+const path = require("path");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public"));
 
-const FILE = "notes.json";
+// Serve static files
+app.use(express.static(path.join(__dirname, "public")));
+
+const FILE = path.join(__dirname, "notes.json");
+
+// Home page
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 // Get all notes
 app.get("/notes", (req, res) => {
     let notes = [];
 
     if (fs.existsSync(FILE)) {
-        notes = JSON.parse(fs.readFileSync(FILE));
+        notes = JSON.parse(fs.readFileSync(FILE, "utf8"));
     }
 
     res.json(notes);
 });
 
-// Add a note
+// Add note
 app.post("/notes", (req, res) => {
     let notes = [];
 
     if (fs.existsSync(FILE)) {
-        notes = JSON.parse(fs.readFileSync(FILE));
+        notes = JSON.parse(fs.readFileSync(FILE, "utf8"));
     }
 
     const newNote = {
@@ -42,12 +50,12 @@ app.post("/notes", (req, res) => {
     res.json(newNote);
 });
 
-// Delete a note
+// Delete note
 app.delete("/notes/:id", (req, res) => {
     let notes = [];
 
     if (fs.existsSync(FILE)) {
-        notes = JSON.parse(fs.readFileSync(FILE));
+        notes = JSON.parse(fs.readFileSync(FILE, "utf8"));
     }
 
     notes = notes.filter(note => note.id != req.params.id);
@@ -57,6 +65,7 @@ app.delete("/notes/:id", (req, res) => {
     res.json({ message: "Note deleted" });
 });
 
+// Start server
 app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
